@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  username    String   @unique
+  password    String
+  isConfirmed Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userServices UserService[]
+  areas        Area[]
+  
+  @@map("users")
+}
+
+model Service {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String
+  authType    String
+  isActive    Boolean  @default(true)
+  configSchema Json?
+  createdAt   DateTime @default(now())
+  
+  actions      Action[]
+  reactions    Reaction[]
+  userServices UserService[]
+  
+  @@map("services")
+}
+
+model UserService {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  serviceId    Int
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
+  scopes       Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  service      Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, serviceId])
+  @@map("user_services")
+}
+
+model Action {
+  id          Int      @id @default(autoincrement())
+  serviceId   Int
+  name        String
+  description String
+  configSchema Json?
+  triggerType String
+  
+  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  areas       Area[]
+  
+  @@unique([serviceId, name])
+  @@map("actions")
+}
+
+model Reaction {
+  id          Int      @id @default(autoincrement())
+  serviceId   Int
+  name        String
+  description String
+  configSchema Json?
+  
+  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  areas       Area[]
+  
+  @@unique([serviceId, name])
+  @@map("reactions")
+}
+
+model Area {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  name           String
+  description    String?
+  actionId       Int
+  actionConfig   Json
+  reactionId     Int
+  reactionConfig Json
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action         Action   @relation(fields: [actionId], references: [id])
+  reaction       Reaction @relation(fields: [reactionId], references: [id])
+  
+  executionLogs  ExecutionLog[]
+  
+  @@map("areas")
+}
+
+model ExecutionLog {
+  id              Int      @id @default(autoincrement())
+  areaId          Int
+  triggeredAt     DateTime @default(now())
+  status          String
+  actionData      Json?
+  reactionResult  Json?
+  errorMessage    String?
+  executionTimeMs Int?
+  area            Area     @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  
+  @@map("execution_logs")
+}

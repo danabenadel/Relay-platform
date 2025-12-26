@@ -1,0 +1,4 @@
+/* Ou gardez la syntaxe classique */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

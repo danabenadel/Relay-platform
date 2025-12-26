@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String?  @map("password_hash")
+  emailVerified Boolean  @default(false) @map("email_verified")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  oauthTokens   OAuthToken[]
+  auditLogs     AuditLog[]
+  name      String?
+  areas       Area[]  
+  @@map("users")
+}
+
+model OAuthToken {
+  id           String    @id @default(cuid())
+  userId       String    @map("user_id")
+  serviceName  String    @map("service_name")
+  accessToken  String    @map("access_token")
+  refreshToken String?   @map("refresh_token")
+  expiresAt    DateTime? @map("expires_at")
+  scope        String[]
+  email        String?
+  displayName  String?   @map("display_name")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, serviceName])
+  @@map("oauth_tokens")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  action    String
+  ipAddress String   @map("ip_address")
+  userAgent String?  @map("user_agent")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("audit_logs")
+}
+
+model Service {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  description String?
+  type        String
+  actions     Action[]
+  reactions   Reaction[]
+  @@map("services")
+}
+
+model Action {
+  id          Int    @id @default(autoincrement())
+  name        String
+  description String
+  serviceId   Int    @map("service_id")
+  params      Json   @default("[]")
+
+  service Service @relation(fields: [serviceId], references: [id])
+  areas   Area[]
+
+  @@unique([serviceId, name], name: "serviceId_name")
+  @@map("actions")
+}
+
+model Reaction {
+  id          Int    @id @default(autoincrement())
+  name        String
+  description String
+  serviceId   Int    @map("service_id")
+  params      Json   @default("[]")
+
+  service Service @relation(fields: [serviceId], references: [id])
+  areas   Area[]
+
+  @@unique([serviceId, name], name: "serviceId_name")
+  @@map("reactions")
+}
+
+model Area {
+  id              Int       @id @default(autoincrement())
+  userId          String    @map("user_id")
+  actionId        Int       @map("action_id")
+  reactionId      Int       @map("reaction_id")
+  config          Json
+  isActive        Boolean   @default(true) @map("is_active")
+  lastTriggeredAt DateTime? @map("last_triggered_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action   Action   @relation(fields: [actionId], references: [id])
+  reaction Reaction @relation(fields: [reactionId], references: [id])
+
+  @@map("areas")
+}
+

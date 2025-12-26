@@ -1,0 +1,53 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-error.log*
+dist/
+build/
+
+# Environment & Secrets
+.env
+*.key
+*.pem
+*.bak
+.ngrok_url
+
+# Database
+*.sqlite
+*.db
+
+# Mobile
+*.apk
+*.aab
+mobile/android/.gradle/
+mobile/ios/Flutter/
+mobile/ios/build/
+mobile/ios/Pods/
+apk/
+
+# Docker
+docker/data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs & Cache
+*.log
+.cache/
+coverage/
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+vendor/
+target/
+
+#backend keys
+
+backend/keys
+mobile/linux/flutter/generated_plugin_registrant.cc
+mobile/linux/flutter/generated_plugin_registrant.h
+mobile/linux/flutter/generated_plugins.cmake
+mobile/ios/

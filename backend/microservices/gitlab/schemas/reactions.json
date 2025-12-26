@@ -1,0 +1,166 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GitLab Reactions Configuration",
+  "description": "Schema for GitLab reaction configurations",
+  "definitions": {
+    "create_issue": {
+      "type": "object",
+      "required": ["projectId", "title"],
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "ID or URL-encoded path of the GitLab project",
+          "examples": ["123", "group%2Fproject"]
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the issue",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the issue"
+        },
+        "labels": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Comma-separated labels"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Array of label names"
+            }
+          ]
+        },
+        "assigneeIds": {
+          "oneOf": [
+            {
+              "type": "number",
+              "description": "Single assignee user ID"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "description": "Array of assignee user IDs"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "comment_merge_request": {
+      "type": "object",
+      "required": ["projectId", "mergeRequestIid", "body"],
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "ID or URL-encoded path of the GitLab project"
+        },
+        "mergeRequestIid": {
+          "type": ["number", "string"],
+          "description": "Internal ID (IID) of the merge request"
+        },
+        "body": {
+          "type": "string",
+          "description": "Comment text",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "add_label": {
+      "type": "object",
+      "required": ["projectId", "issueIid", "labels"],
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "ID or URL-encoded path of the GitLab project"
+        },
+        "issueIid": {
+          "type": ["number", "string"],
+          "description": "Internal ID (IID) of the issue"
+        },
+        "labels": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Comma-separated labels"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Array of label names"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "close_issue": {
+      "type": "object",
+      "required": ["projectId", "issueIid"],
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "ID or URL-encoded path of the GitLab project"
+        },
+        "issueIid": {
+          "type": ["number", "string"],
+          "description": "Internal ID (IID) of the issue"
+        }
+      },
+      "additionalProperties": false
+    },
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "reactionType": {
+          "const": "create_issue"
+        },
+        "config": {
+          "$ref": "#/definitions/create_issue"
+        }
+      }
+    },
+    {
+      "properties": {
+        "reactionType": {
+          "const": "comment_merge_request"
+        },
+        "config": {
+          "$ref": "#/definitions/comment_merge_request"
+        }
+      }
+    },
+    {
+      "properties": {
+        "reactionType": {
+          "const": "add_label"
+        },
+        "config": {
+          "$ref": "#/definitions/add_label"
+        }
+      }
+    },
+    {
+      "properties": {
+        "reactionType": {
+          "const": "close_issue"
+        },
+        "config": {
+          "$ref": "#/definitions/close_issue"
+        }
+      }
+    }
+  ]
+}

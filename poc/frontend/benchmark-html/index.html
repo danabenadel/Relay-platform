@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benchmark Auth - HTML + CSS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-100">
+    <main class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <div class="w-full max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
+            <h2 id="form-title" class="text-2xl font-bold text-center mb-6 text-gray-800">
+                Connexion
+            </h2>
+
+            <div id="error-message" class="hidden mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            </div>
+
+            <div class="space-y-4">
+                <input
+                    id="email"
+                    type="email"
+                    placeholder="Email"
+                    class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+
+                <input
+                    id="password"
+                    type="password"
+                    placeholder="Mot de passe"
+                    class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+
+                <input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="Confirmer le mot de passe"
+                    class="hidden w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+
+                <button
+                    id="submit-button"
+                    class="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 disabled:bg-blue-300 transition duration-200"
+                >
+                    Se connecter
+                </button>
+            </div>
+
+            <p class="text-center text-gray-600 mt-6">
+                <span id="toggle-text">Pas de compte ?</span>
+                <button
+                    id="toggle-button"
+                    class="text-blue-500 hover:underline ml-1"
+                >
+                    S'inscrire
+                </button>
+            </p>
+        </div>
+    </main>
+
+    <script>
+        // État de l'application
+        let isRegister = false;
+        let loading = false;
+
+        // Éléments du DOM
+        const formTitle = document.getElementById('form-title');
+        const errorMessage = document.getElementById('error-message');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        const submitButton = document.getElementById('submit-button');
+        const toggleText = document.getElementById('toggle-text');
+        const toggleButton = document.getElementById('toggle-button');
+
+        // Fonctions de validation
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function validatePassword(password) {
+            return password.length >= 6;
+        }
+
+        function validateForm() {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            const confirmPassword = confirmPasswordInput.value.trim();
+
+            if (!email) {
+                return 'Email requis';
+            }
+
+            if (!validateEmail(email)) {
+                return 'Email invalide';
+            }
+
+            if (!password) {
+                return 'Mot de passe requis';
+            }
+
+            if (!validatePassword(password)) {
+                return 'Mot de passe trop court (6 caractères minimum)';
+            }
+
+            if (isRegister && password !== confirmPassword) {
+                return 'Les mots de passe ne correspondent pas';
+            }
+
+            return null;
+        }
+
+        // Fonctions d'affichage
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+
+        function hideError() {
+            errorMessage.classList.add('hidden');
+        }
+
+        function setLoading(isLoading) {
+            loading = isLoading;
+            submitButton.disabled = isLoading;
+            submitButton.textContent = isLoading ? 'Chargement...' : 
+                (isRegister ? "S'inscrire" : 'Se connecter');
+            
+            // Désactiver les inputs pendant le chargement
+            emailInput.disabled = isLoading;
+            passwordInput.disabled = isLoading;
+            confirmPasswordInput.disabled = isLoading;
+            toggleButton.disabled = isLoading;
+        }
+
+        function updateUI() {
+            if (isRegister) {
+                formTitle.textContent = 'Inscription';
+                confirmPasswordInput.classList.remove('hidden');
+                submitButton.textContent = "S'inscrire";
+                toggleText.textContent = 'Déjà un compte ?';
+                toggleButton.textContent = 'Se connecter';
+            } else {
+                formTitle.textContent = 'Connexion';
+                confirmPasswordInput.classList.add('hidden');
+                submitButton.textContent = 'Se connecter';
+                toggleText.textContent = 'Pas de compte ?';
+                toggleButton.textContent = "S'inscrire";
+            }
+        }
+
+        // Gestionnaires d'événements
+        function clearErrorOnInput() {
+            if (!errorMessage.classList.contains('hidden')) {
+                hideError();
+            }
+        }
+
+        async function handleSubmit() {
+            if (loading) return;
+
+            hideError();
+            setLoading(true);
+
+            const validationError = validateForm();
+            if (validationError) {
+                showError(validationError);
+                setLoading(false);
+                return;
+            }
+
+            try {
+                // Simulation d'une API call
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                const formData = {
+                    email: emailInput.value,
+                    password: passwordInput.value
+                };
+                
+                console.log(`${isRegister ? 'Inscription' : 'Connexion'} attempt:`, formData);
+                alert(`${isRegister ? 'Inscription' : 'Connexion'} simulée avec succès !`);
+                
+            } catch (error) {
+                showError('Une erreur est survenue');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function handleToggleMode() {
+            if (loading) return;
+            
+            isRegister = !isRegister;
+            updateUI();
+            hideError();
+            
+            // Réinitialiser les champs
+            emailInput.value = '';
+            passwordInput.value = '';
+            confirmPasswordInput.value = '';
+        }
+
+        // Ajout des événements
+        submitButton.addEventListener('click', handleSubmit);
+        toggleButton.addEventListener('click', handleToggleMode);
+
+        // Effacer l'erreur lors de la saisie
+        emailInput.addEventListener('input', clearErrorOnInput);
+        passwordInput.addEventListener('input', clearErrorOnInput);
+        confirmPasswordInput.addEventListener('input', clearErrorOnInput);
+
+        // Gérer la touche Entrée
+        document.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                handleSubmit();
+            }
+        });
+
+        // Initialisation
+        updateUI();
+    </script>
+</body>
+</html>

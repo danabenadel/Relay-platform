@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "rootDir": ".",
+    "outDir": "dist",
+    "strict": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
+  },
+  "include": ["index.ts", "google-adapter.ts", "quota-manager.ts"],
+  "exclude": ["enhanced-google-adapter.ts", "actions", "reactions"]
+}

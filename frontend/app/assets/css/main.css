@@ -1,0 +1,188 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/* ==============================================
+          DESIGN SYSTEM - COULEURS
+   ============================================== */
+
+:root {
+  /* Couleurs principales */
+  --relay-primary-50: #eff6ff;    /* blue-50 */
+  --relay-primary-100: #dbeafe;   /* blue-100 */
+  --relay-primary-200: #bfdbfe;   /* blue-200 */
+  --relay-primary-300: #93c5fd;   /* blue-300 */
+  --relay-primary-400: #60a5fa;   /* blue-400 */
+  --relay-primary-500: #3b82f6;   /* blue-500 */
+  --relay-primary-600: #2563eb;   /* blue-600 */
+  --relay-primary-700: #1d4ed8;   /* blue-700 */
+  --relay-primary-800: #1e40af;   /* blue-800 */
+  --relay-primary-900: #1e3a8a;   /* blue-900 */
+
+  /* Couleurs secondaires (Indigo) */
+  --relay-secondary-50: #eef2ff;   /* indigo-50 */
+  --relay-secondary-100: #e0e7ff;  /* indigo-100 */
+  --relay-secondary-200: #c7d2fe;  /* indigo-200 */
+  --relay-secondary-300: #a5b4fc;  /* indigo-300 */
+  --relay-secondary-400: #818cf8;  /* indigo-400 */
+  --relay-secondary-500: #6366f1;  /* indigo-500 */
+  --relay-secondary-600: #4f46e5;  /* indigo-600 */
+  --relay-secondary-700: #4338ca;  /* indigo-700 */
+  --relay-secondary-800: #3730a3;  /* indigo-800 */
+  --relay-secondary-900: #312e81;  /* indigo-900 */
+
+  /* Couleurs d'accent */
+  --relay-accent-purple-500: #8b5cf6; /* purple-500 */
+  --relay-accent-purple-600: #7c3aed; /* purple-600 */
+  --relay-accent-cyan-500: #06b6d4;   /* cyan-500 */
+  --relay-accent-cyan-600: #0891b2;   /* cyan-600 */
+  --relay-accent-green-400: #4ade80;  /* green-400 */
+
+  /* Couleurs de fond */
+  --relay-bg-slate-900: #0f172a;    /* slate-900 */
+  --relay-bg-dark: #0f172a;         /* Équivalent slate-900 */
+
+  /* Couleurs de texte */
+  --relay-text-white: #ffffff;
+  --relay-text-primary: #dbeafe;    /* blue-100 */
+  --relay-text-secondary: #bfdbfe;  /* blue-200 */
+  --relay-text-muted: #93c5fd;      /* blue-300 */
+
+  /* Couleurs de surface */
+  --relay-surface-glass: rgba(255, 255, 255, 0.1);      /* white/10 */
+  --relay-surface-glass-hover: rgba(255, 255, 255, 0.15); /* white/15 */
+  --relay-surface-glass-border: rgba(255, 255, 255, 0.2); /* white/20 */
+
+  /* Gradients */
+  --relay-gradient-primary: linear-gradient(135deg, var(--relay-primary-600), var(--relay-secondary-600));
+  --relay-gradient-primary-hover: linear-gradient(135deg, var(--relay-primary-700), var(--relay-secondary-700));
+  --relay-gradient-background: linear-gradient(135deg, var(--relay-bg-slate-900), var(--relay-primary-900), var(--relay-secondary-900));
+  --relay-gradient-text: linear-gradient(90deg, var(--relay-text-white), var(--relay-text-primary), var(--relay-text-secondary));
+
+  /* Workflow colors */
+  --relay-workflow-trigger: rgba(59, 130, 246, 0.2);     /* blue-500/20 */
+  --relay-workflow-trigger-border: rgba(59, 130, 246, 0.3); /* blue-500/30 */
+  --relay-workflow-process: rgba(139, 92, 246, 0.2);     /* purple-500/20 */
+  --relay-workflow-process-border: rgba(139, 92, 246, 0.3); /* purple-500/30 */
+  --relay-workflow-action: rgba(99, 102, 241, 0.2);      /* indigo-500/20 */
+  --relay-workflow-action-border: rgba(99, 102, 241, 0.3); /* indigo-500/30 */
+}
+
+/* ==============================================
+   CLASSES UTILITAIRES RELAY
+   ============================================== */
+
+/* Backgrounds */
+.relay-bg-primary { background: var(--relay-gradient-primary); }
+.relay-bg-primary-hover { background: var(--relay-gradient-primary-hover); }
+.relay-bg-dark { background-color: var(--relay-bg-dark); }
+.relay-bg-gradient { background: var(--relay-gradient-background); }
+.relay-bg-glass { background-color: var(--relay-surface-glass); backdrop-filter: blur(12px); }
+.relay-bg-glass-hover { background-color: var(--relay-surface-glass-hover); }
+
+/* Borders */
+.relay-border-glass { border-color: var(--relay-surface-glass-border); }
+
+/* Text */
+.relay-text-primary { color: var(--relay-text-primary); }
+.relay-text-secondary { color: var(--relay-text-secondary); }
+.relay-text-muted { color: var(--relay-text-muted); }
+.relay-text-white { color: var(--relay-text-white); }
+.relay-text-gradient {
+  background: var(--relay-gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Workflow specifiques */
+.relay-workflow-trigger {
+  background-color: var(--relay-workflow-trigger);
+  border-color: var(--relay-workflow-trigger-border);
+}
+.relay-workflow-process {
+  background-color: var(--relay-workflow-process);
+  border-color: var(--relay-workflow-process-border);
+}
+.relay-workflow-action {
+  background-color: var(--relay-workflow-action);
+  border-color: var(--relay-workflow-action-border);
+}
+
+/* Boutons */
+.relay-btn-primary {
+  background: var(--relay-gradient-primary);
+  color: var(--relay-text-white);
+  transition: all 0.3s ease;
+}
+.relay-btn-primary:hover {
+  background: var(--relay-gradient-primary-hover);
+  transform: translateY(-2px);
+}
+
+.relay-btn-secondary {
+  background-color: var(--relay-surface-glass);
+  color: var(--relay-text-white);
+  border: 2px solid var(--relay-surface-glass-border);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+.relay-btn-secondary:hover {
+  background-color: var(--relay-surface-glass-hover);
+  transform: translateY(-1px);
+}
+
+/* Cards */
+.relay-card {
+  background-color: var(--relay-surface-glass);
+  border: 1px solid var(--relay-surface-glass-border);
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+}
+.relay-card:hover {
+  background-color: var(--relay-surface-glass-hover);
+  transform: scale(1.02);
+}
+
+/* Styles personnalisés pour Relay */
+.area-connection {
+  @apply flex items-center justify-center;
+}
+
+.service-card {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  }
+
+/* ==============================================
+   MODE DALTONIEN - FILTRES CSS
+   ============================================== */
+
+/* Mode Protanopie (déficience rouge - no red) */
+body.colorblind-protanopia {
+  filter:
+    saturate(0.7)
+    hue-rotate(-10deg)
+    brightness(1.1) !important;
+}
+
+/* Mode Deutéranopie (déficience vert - no green) */
+body.colorblind-deuteranopia {
+  filter:
+    saturate(0.6)
+    hue-rotate(10deg)
+    brightness(1.05) !important;
+}
+
+/* Mode Tritanopie (déficience bleu - no blue) */
+body.colorblind-tritanopia {
+  filter:
+    saturate(0.5)
+    hue-rotate(90deg)
+    brightness(1.1) !important;
+}
+
+/* Mode Monochrome (niveaux de gris) */
+body.colorblind-monochrome {
+  filter: grayscale(100%) !important;
+}

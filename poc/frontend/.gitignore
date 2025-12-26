@@ -1,0 +1,59 @@
+# Node modules
+/node_modules
+/.pnp
+.pnp.js
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Dependency directories
+/.next
+/.nuxt
+/.svelte-kit
+
+# Build output
+/dist
+/build
+/.vercel
+/out
+/.temp
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# TypeScript
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Optional prettier cache
+.prettiercache
+
+# Storybook
+.out
+storybook-static
+
+# Misc
+*.log

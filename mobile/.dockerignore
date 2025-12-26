@@ -1,0 +1,14 @@
+.build/
+build/
+.android/
+.ios/
+.macos/
+.windows/
+.linux/
+web/
+.dart_tool/
+.gradle/
+.idea/
+.vscode/
+.git/
+node_modules/

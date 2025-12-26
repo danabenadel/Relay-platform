@@ -1,0 +1,596 @@
+openapi: 3.0.0
+info:
+  title: AREA API
+  description: |
+    API pour créer des AREAs (Action-REAction) automatisées.
+    
+    Un système d'automatisation type IFTTT où :
+    - **Action** = Déclencheur (ex: Timer à 18h30)
+    - **REAction** = Réponse (ex: Envoyer notification Discord)
+    
+    ## Architecture
+    - Backend principal (port 8080)
+    - Microservice Timer (port 5001)
+    - Microservice Discord (port 5003)
+    - Microservice Console (port 5002)
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@area.com
+
+servers:
+  - url: http://localhost:8080
+    description: Serveur de développement
+
+tags:
+  - name: Authentication
+    description: Gestion de l'authentification
+  - name: AREAs
+    description: Gestion des AREAs (Actions-REActions)
+  - name: Health
+    description: Endpoints de santé
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT obtenu via /auth/login
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "cmgglbam50000nw4xoz9qzvwm"
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        createdAt:
+          type: string
+          format: date-time
+
+    AREA:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        userId:
+          type: string
+          example: "cmgglbam50000nw4xoz9qzvwm"
+        actionId:
+          type: integer
+          example: 1
+          description: "ID de l'action (1=timer_time, 2=timer_date)"
+        reactionId:
+          type: integer
+          example: 2
+          description: "ID de la réaction (1=console_log, 2=discord_webhook)"
+        config:
+          type: object
+          properties:
+            timerType:
+              type: string
+              enum: [time, date, countdown]
+              example: "time"
+            targetTime:
+              type: string
+              pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$'
+              example: "18:30"
+              description: "Heure au format HH:MM (Europe/Paris)"
+            checkInterval:
+              type: integer
+              example: 30
+              description: "Intervalle de vérification en secondes"
+            discordTitle:
+              type: string
+              example: "Rappel quotidien"
+            discordColor:
+              type: integer
+              example: 3066993
+              description: "Couleur de l'embed Discord (format décimal)"
+        isActive:
+          type: boolean
+          example: true
+        lastTriggeredAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Service:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: "timer"
+        description:
+          type: string
+        type:
+          type: string
+          example: "internal"
+
+    Action:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: "timer_time"
+        description:
+          type: string
+        serviceId:
+          type: integer
+
+    Reaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: "discord_webhook"
+        description:
+          type: string
+        serviceId:
+          type: integer
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Error message"
+
+    AboutJson:
+      type: object
+      properties:
+        client:
+          type: object
+          properties:
+            host:
+              type: string
+              example: "10.0.2.2"
+        server:
+          type: object
+          properties:
+            current_time:
+              type: integer
+              example: 1696680780
+            services:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "timer"
+                  actions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        description:
+                          type: string
+                  reactions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        description:
+                          type: string
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Vérifier l'état de santé de l'API
+      responses:
+        '200':
+          description: API opérationnelle
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "OK"
+                  timestamp:
+                    type: string
+                    format: date-time
+                  service:
+                    type: string
+                    example: "AREA Backend"
+
+  /about.json:
+    get:
+      tags:
+        - Health
+      summary: Informations sur les services disponibles
+      description: Retourne la liste des services, actions et réactions disponibles
+      responses:
+        '200':
+          description: Liste des services
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AboutJson'
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Créer un nouveau compte utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: "SecurePass123!"
+                name:
+                  type: string
+                  example: "John Doe"
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Se connecter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "SecurePass123!"
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '401':
+          description: Identifiants invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/profile:
+    get:
+      tags:
+        - Authentication
+      summary: Obtenir le profil utilisateur
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Profil utilisateur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/areas:
+    get:
+      tags:
+        - AREAs
+      summary: Récupérer toutes les AREAs de l'utilisateur
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Liste des AREAs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AREA'
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - AREAs
+      summary: Créer une nouvelle AREA
+      description: |
+        Crée une AREA (Action-REAction).
+        
+        **Exemple : Timer → Discord**
+        - Action: Timer qui se déclenche à 18:30
+        - REAction: Envoyer une notification Discord
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - actionId
+                - reactionId
+                - config
+              properties:
+                actionId:
+                  type: integer
+                  example: 1
+                  description: "1 = timer_time, 2 = timer_date"
+                reactionId:
+                  type: integer
+                  example: 2
+                  description: "1 = console_log, 2 = discord_webhook"
+                config:
+                  type: object
+                  required:
+                    - timerType
+                    - targetTime
+                    - checkInterval
+                  properties:
+                    timerType:
+                      type: string
+                      enum: [time, date, countdown]
+                      example: "time"
+                    targetTime:
+                      type: string
+                      example: "18:30"
+                      description: "Format HH:MM en heure de Paris"
+                    targetDate:
+                      type: string
+                      example: "25/12"
+                      description: "Format DD/MM (pour timerType=date)"
+                    checkInterval:
+                      type: integer
+                      example: 30
+                      description: "Intervalle de vérification en secondes (min: 30)"
+                    discordTitle:
+                      type: string
+                      example: "Rappel quotidien"
+                    discordColor:
+                      type: integer
+                      example: 3066993
+            examples:
+              timerDiscord:
+                summary: Timer quotidien à 18h30 → Discord
+                value:
+                  actionId: 1
+                  reactionId: 2
+                  config:
+                    timerType: "time"
+                    targetTime: "18:30"
+                    checkInterval: 30
+                    discordTitle: "Fin de journée"
+                    discordColor: 3066993
+              timerConsole:
+                summary: Timer → Console log
+                value:
+                  actionId: 1
+                  reactionId: 1
+                  config:
+                    timerType: "time"
+                    targetTime: "12:00"
+                    checkInterval: 60
+      responses:
+        '201':
+          description: AREA créée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/AREA'
+                  message:
+                    type: string
+                    example: "AREA created successfully"
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Action ou Reaction non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/areas/{id}:
+    delete:
+      tags:
+        - AREAs
+      summary: Supprimer une AREA
+      description: |
+        Supprime une AREA et arrête le timer associé.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 123
+      responses:
+        '200':
+          description: AREA supprimée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "AREA deleted successfully"
+        '401':
+          description: Non authentifié
+        '404':
+          description: AREA non trouvée
+
+  /api/areas/triggers/execute:
+    post:
+      tags:
+        - AREAs
+      summary: Déclencher manuellement une AREA
+      description: |
+        Endpoint appelé par les microservices pour déclencher une réaction.
+        **Note:** Utilisé en interne par le Timer Service.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - areaId
+              properties:
+                userId:
+                  type: string
+                  example: "cmgglbam50000nw4xoz9qzvwm"
+                areaId:
+                  type: string
+                  example: "123"
+                actionType:
+                  type: string
+                  example: "timer"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      example: "time"
+                    timestamp:
+                      type: string
+                      format: date-time
+      responses:
+        '200':
+          description: Réaction exécutée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Reaction executed successfully"
+        '400':
+          description: Données manquantes
+        '404':
+          description: AREA non trouvée

@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GitLab Actions Configuration",
+  "description": "Schema for GitLab action configurations",
+  "definitions": {
+    "new_issue": {
+      "type": "object",
+      "required": ["projectId"],
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "ID or URL-encoded path of the GitLab project",
+          "examples": ["123", "group%2Fproject"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "merge_request_merged": {
+      "type": "object",
+      "required": ["projectId"],
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "ID or URL-encoded path of the GitLab project",
+          "examples": ["123", "group%2Fproject"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "new_merge_request": {
+      "type": "object",
+      "required": ["projectId"],
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "ID or URL-encoded path of the GitLab project",
+          "examples": ["123", "group%2Fproject"]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "actionType": {
+          "const": "new_issue"
+        },
+        "config": {
+          "$ref": "#/definitions/new_issue"
+        }
+      }
+    },
+    {
+      "properties": {
+        "actionType": {
+          "const": "merge_request_merged"
+        },
+        "config": {
+          "$ref": "#/definitions/merge_request_merged"
+        }
+      }
+    },
+    {
+      "properties": {
+        "actionType": {
+          "const": "new_merge_request"
+        },
+        "config": {
+          "$ref": "#/definitions/new_merge_request"
+        }
+      }
+    }
+  ]
+}

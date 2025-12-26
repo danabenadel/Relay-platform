@@ -1,0 +1,33 @@
+{
+  "name": "area-youtube-service",
+  "version": "1.0.0",
+  "description": "YouTube microservice for AREA project",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node index.ts",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "youtube",
+    "microservice",
+    "area",
+    "oauth"
+  ],
+  "author": "AREA Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "google-auth-library": "^9.6.3",
+    "googleapis": "^137.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.19",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

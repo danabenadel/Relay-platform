@@ -1,0 +1,327 @@
+services:
+  # === BASE DE DONNÉES ===
+  database:
+    image: postgres:14-alpine
+    container_name: area_database
+    env_file:
+      - ./.env
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-area_user} -d ${POSTGRES_DB:-area_db} -p 5432",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - area-network
+
+  # === SERVEUR BACKEND ===
+  server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: area_server
+    ports:
+      - "0.0.0.0:8080:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+    env_file:
+      - ./.env
+    volumes:
+      - ./backend/src:/app/src:ro
+      - ./apk:/app/apk:ro
+    networks:
+      - area-network
+
+  # === CLIENT WEB ===
+  client_web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: area_client_web
+    ports:
+      - "8081:8081"
+    depends_on:
+      - server
+    env_file:
+      - ./.env
+    networks:
+      - area-network
+    restart: unless-stopped
+
+  # === CLIENT MOBILE (APK) ===
+  client_mobile:
+    image: ghcr.io/cirruslabs/flutter:stable
+    container_name: area_client_mobile
+    working_dir: /app
+    volumes:
+      - ./mobile:/app
+      - ./apk:/out
+    depends_on:
+      - server
+    networks:
+      - area-network
+    command: >
+      sh -c "
+        flutter pub get &&
+        flutter build apk --debug --dart-define=API_BASE_URL=${MOBILE_API_BASE_URL:-http://localhost:8080} &&
+        cp build/app/outputs/flutter-apk/app-debug.apk /out/area-client.apk &&
+        echo ' APK prêt dans ./apk/area-client.apk'
+      "
+
+  # === MICROSERVICE TIMER ===
+  area_timer_service:
+    build:
+      context: ./backend/microservices/timer
+      dockerfile: Dockerfile
+    container_name: area_timer_service
+    environment:
+      - TZ=Europe/Paris
+      - PORT=5001
+    env_file:
+      - ./.env
+    ports:
+      - "5001:5001"
+    networks:
+      - area-network
+    restart: unless-stopped
+
+  # === MICROSERVICE GOOGLE ===
+  area_google_service:
+    build:
+      context: ./backend/microservices/google
+      dockerfile: Dockerfile
+    container_name: area_google_service
+    environment:
+      - PORT=5002
+      - TZ=Europe/Paris
+    env_file:
+      - ./.env
+    ports:
+      - "5002:5002"
+    networks:
+      - area-network
+    restart: unless-stopped
+
+  # === MICROSERVICE DISCORD ===
+  area_discord_service:
+    build:
+      context: ./backend/microservices/discord
+      dockerfile: Dockerfile
+    container_name: area_discord_service
+    environment:
+      - PORT=5003
+    env_file:
+      - ./.env
+    ports:
+      - "5003:5003"
+    networks:
+      - area-network
+    restart: unless-stopped
+
+  # === MICROSERVICE SPOTIFY ===
+  area_spotify_service:
+    build:
+      context: ./backend/microservices/spotify
+      dockerfile: Dockerfile
+    container_name: area_spotify_service
+    environment:
+      - PORT=5004
+    env_file:
+      - ./.env
+    ports:
+      - "5004:5004"
+    networks:
+      - area-network
+    restart: unless-stopped
+
+  # === MICROSERVICE REDDIT ===
+  area_reddit_service:
+    build:
+      context: ./backend/microservices/reddit
+      dockerfile: Dockerfile
+    container_name: area_reddit_service
+    environment:
+      - PORT=5005
+    env_file:
+      - ./.env
+    ports:
+      - "5005:5005"
+    networks:
+      - area-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # === MICROSERVICE GITHUB ===
+  area_github_service:
+    build:
+      context: ./backend/microservices/github
+      dockerfile: Dockerfile
+    container_name: area_github_service
+    environment:
+      - PORT=5006
+      - BACKEND_URL=http://area_server:8080
+    env_file:
+      - ./.env
+    ports:
+      - "5006:5006"
+    networks:
+      - area-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # === MICROSERVICE OPENAI ===
+  area_openai_service:
+    build:
+      context: ./backend/microservices/openai
+      dockerfile: Dockerfile
+    container_name: area_openai_service
+    environment:
+      - PORT=5007
+    env_file:
+      - ./.env
+    ports:
+      - "5007:5007"
+    volumes:
+      - ./backend/microservices/openai/outputs:/app/dist/outputs
+    networks:
+      - area-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # === MICROSERVICE YOUTUBE ===
+  area_youtube_service:
+    build:
+      context: ./backend/microservices/youtube
+      dockerfile: Dockerfile
+    container_name: area_youtube_service
+    environment:
+      - PORT=5008
+      - TZ=Europe/Paris
+    env_file:
+      - ./.env
+    ports:
+      - "5008:5008"
+    networks:
+      - area-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5008/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # === MICROSERVICE TELEGRAM ===
+  area_telegram_service:
+    build:
+      context: ./backend/microservices/telegram
+      dockerfile: Dockerfile
+    container_name: area_telegram_service
+    environment:
+      - PORT=5009
+      - TZ=Europe/Paris
+    env_file:
+      - ./.env
+    ports:
+      - "5009:5009"
+    networks:
+      - area-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5009/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # === MICROSERVICE ONEDRIVE ===
+  area_onedrive_service:
+    build:
+      context: ./backend/microservices/onedrive
+      dockerfile: Dockerfile
+    container_name: area_onedrive_service
+    environment:
+      - PORT=5010
+    env_file:
+      - ./.env
+    ports:
+      - "5010:5010"
+    networks:
+      - area-network
+    restart: unless-stopped
+
+  # === MICROSERVICE GITLAB ===
+  area_gitlab_service:
+    build:
+      context: ./backend/microservices/gitlab
+      dockerfile: Dockerfile
+    container_name: area_gitlab_service
+    environment:
+      - PORT=5013
+      - BACKEND_URL=http://area_server:8080
+    env_file:
+      - ./.env
+    ports:
+      - "5013:5013"
+    networks:
+      - area-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5013/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # === MICROSERVICE NOTION ===
+  area_notion_service:
+    build:
+      context: ./backend/microservices/notion
+      dockerfile: Dockerfile
+    container_name: area_notion_service
+    environment:
+      - PORT=5014
+      - BACKEND_URL=http://area_server:8080
+    env_file:
+      - ./.env
+    ports:
+      - "5014:5014"
+    networks:
+      - area-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5014/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  postgres_data:
+
+networks:
+  area-network:
+    driver: bridge

@@ -1,0 +1,98 @@
+name: Auto-Push vers Repo Principal
+
+on:
+  workflow_run:
+    workflows: ["CI - Build & Test"]
+    types:
+      - completed
+    branches: [main, develop]
+
+jobs:
+  push-to-principal:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+      - name: Checkout mirror repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_branch }}
+      
+      - name: Configure Git
+        run: |
+          git config user.name "AREA CI/CD Bot"
+          git config user.email "ci-bot@area.epitech.eu"
+      
+      - name: Verify secrets
+        run: |
+          if [ -z "${{ secrets.PRINCIPAL_REPO_TOKEN }}" ]; then
+            echo "ERROR: PRINCIPAL_REPO_TOKEN is empty"
+            exit 1
+          fi
+          
+          if [ -z "${{ secrets.PRINCIPAL_REPO_URL }}" ]; then
+            echo "ERROR: PRINCIPAL_REPO_URL is empty"
+            exit 1
+          fi
+          
+          echo "Secrets are configured correctly"
+      
+      - name: Push to Principal Repo
+        run: |
+          echo "Pushing to: ${{ secrets.PRINCIPAL_REPO_URL }}"
+          git remote add principal https://x-access-token:${{ secrets.PRINCIPAL_REPO_TOKEN }}@github.com/${{ secrets.PRINCIPAL_REPO_URL }}.git
+          git push principal ${{ github.event.workflow_run.head_branch }} --force
+        env:
+          GIT_TOKEN: ${{ secrets.PRINCIPAL_REPO_TOKEN }}
+      
+      - name: Success
+        run: |
+          echo "✅ Code pushed to principal repo!"
+          echo "📦 Branch: ${{ github.event.workflow_run.head_branch }}"
+          echo "🔗 Repo: ${{ secrets.PRINCIPAL_REPO_URL }}"
+      
+      - name: Send Discord Success Notification
+        if: success() && secrets.DISCORD_WEBHOOK_URL != ''
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d "{
+            \"username\": \"AREA Deploy Bot\",
+            \"embeds\": [{
+              \"title\": \"✅ Déploiement réussi\",
+              \"description\": \"Le code a été poussé vers le repo principal Epitech\",
+              \"color\": 3066993,
+              \"fields\": [
+                {\"name\": \"Branche\", \"value\": \"${{ github.event.workflow_run.head_branch }}\", \"inline\": true},
+                {\"name\": \"Commit\", \"value\": \"${GITHUB_SHA:0:7}\", \"inline\": true},
+                {\"name\": \"Auteur\", \"value\": \"${{ github.actor }}\", \"inline\": true}
+              ]
+            }]
+          }" \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+  notify-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    
+    steps:
+      - name: Send Discord Failure Notification
+        if: secrets.DISCORD_WEBHOOK_URL != ''
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d "{
+            \"username\": \"AREA CI Bot\",
+            \"embeds\": [{
+              \"title\": \"❌ CI/CD échouée\",
+              \"description\": \"Les tests ont échoué, le code n'a PAS été poussé vers le repo principal\",
+              \"color\": 15158332,
+              \"fields\": [
+                {\"name\": \"Branche\", \"value\": \"${{ github.event.workflow_run.head_branch }}\", \"inline\": true},
+                {\"name\": \"Auteur\", \"value\": \"${{ github.actor }}\", \"inline\": true}
+              ],
+              \"url\": \"${{ github.event.workflow_run.html_url }}\"
+            }]
+          }" \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
