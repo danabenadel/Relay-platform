@@ -154,10 +154,10 @@
   ## Credits
 
   Developed by:
-  - Dana Benadel — Backend & Architecture
-  - Diego Lacroix — Frontend
-  - Yasma Abd-elkhalek — Mobile
-  - Nadia Benzaoui — DevOps & Integration
+  - Dana Benadel ([@danabenadel](https://github.com/danabenadel)) — Backend & Architecture
+  - Diego Lacroix ([@diego75009](https://github.com/diego75009)) — Frontend
+  - Yasma Abd-elkhalek ([@yasmaabdlk](https://github.com/yasmaabdlk)) — Mobile
+  - Nadia Benzaoui ([@Nadiabenzaoui](https://github.com/Nadiabenzaoui)) — DevOps & Integration
 
   ---
 
