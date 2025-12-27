@@ -1,4 +1,4 @@
-# Relay Platform
+# Relay Platform ⚡
 
   Event-driven automation platform inspired by IFTTT and Zapier, designed to connect third-party services through configurable workflows.
 
@@ -34,15 +34,15 @@
 
   ---
 
-  ## Key Features
+  ## ✨ Key Features
 
-  - User authentication (JWT + OAuth2)
-  - Third-party service integrations (Google, GitHub, Outlook, Discord, etc.)
-  - Event-based automation (**Action → Reaction**)
-  - Real-time workflow execution engine
-  - Fully documented REST API
-  - Web and mobile clients
-  - Docker-based local and production environments
+  - 🔐 User authentication (JWT + OAuth2)
+  - 🔗 Third-party service integrations (Google, GitHub, Outlook, Discord, etc.)
+  - ⚙️ Event-based automation (**Action → Reaction**)
+  - 🚀 Real-time workflow execution engine
+  - 📚 Fully documented REST API
+  - 💻 Web and mobile clients
+  - 🐳 Docker-based local and production environments
 
   ---
 
@@ -64,7 +64,7 @@
 
   ---
 
-  ## Getting Started
+  ## 🚀 Getting Started
 
   ### Prerequisites
   - Docker
@@ -136,7 +136,7 @@
 
   ---
 
-  ## Security
+  ## 🔒 Security
 
   - OAuth2 authentication for external services
   - JWT-secured API endpoints
@@ -151,7 +151,7 @@
 
   ---
 
-  ## Credits
+  ## 👥 Credits
 
   Developed by:
   - Dana Benadel ([@danabenadel](https://github.com/danabenadel)) — Backend & Architecture
