@@ -5,7 +5,6 @@ WORKDIR /app
 COPY package*.json ./
 COPY tsconfig.json ./
 COPY prisma/ ./prisma/
-COPY keys ./keys
 COPY swagger.yaml ./swagger.yaml 
 
 RUN npm ci
